@@ -1,8 +1,14 @@
 package com.kelseykerr.whereabout
 
+import android.Manifest
+import android.app.job.JobScheduler
+import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.design.widget.NavigationView
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
@@ -12,12 +18,24 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_map.*
 import kotlinx.android.synthetic.main.app_bar_map.*
+import android.Manifest.permission
+import android.content.DialogInterface
+import android.graphics.Color
+import android.support.v7.app.AlertDialog
+import android.util.Log
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.android.gms.maps.model.*
+
 
 class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
+
+    companion object {
+        const val MY_PERMISSIONS_REQUEST_FINE_LOCATION = 11
+        const val TAG = "MapActivity"
+    }
 
     private lateinit var mMap: GoogleMap
 
@@ -42,6 +60,7 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+        checkPermissions()
     }
 
     override fun onBackPressed() {
@@ -111,5 +130,122 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
         val sydney = LatLng(-34.0, 151.0)
         mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+    }
+
+    private fun addPoints() {
+        val storage = applicationContext.getSharedPreferences(Utils.LOCATION_STORAGE_NAME, 0)
+        val locObjects = storage.getString(Utils.LOCATION_STORAGE_KEY, null)
+        val mapper = ObjectMapper()
+        val locObjectList: MutableList<LocationObject>
+        if (locObjects != null) {
+            locObjectList = mapper.readValue<MutableList<LocationObject>>(locObjects, object : TypeReference<MutableList<LocationObject>>() {})
+        } else {
+            locObjectList = mutableListOf()
+        }
+        var rectOptions = PolylineOptions()
+        rectOptions.color(Color.argb(255, 85, 166, 27));
+        val startLatLng: LatLng? = null
+        val endLatLng: LatLng? = null
+        try {
+            mMap.setMyLocationEnabled(true)
+        } catch (e: SecurityException) {
+            Log.d(TAG, "Can't get user's current location because permissions aren't granted")
+        }
+        var lastLatLng: LatLng
+        locObjectList.forEach { locObj ->
+            lastLatLng = locObj.latLng
+            var markerOptions = MarkerOptions()
+            markerOptions.position(lastLatLng)
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(lastLatLng));
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(15F))
+
+            markerOptions.icon(BitmapDescriptorFactory
+                    .defaultMarker(BitmapDescriptorFactory.HUE_RED));
+            markerOptions.title("" + locObj.date)
+            mMap.addMarker(markerOptions)
+
+            mMap.setOnMarkerClickListener(object : GoogleMap.OnMarkerClickListener {
+                override fun onMarkerClick(p0: Marker?): Boolean {
+                    if (p0 != null) {
+                        p0.showInfoWindow()
+                    }
+                    return false
+                }
+            })
+            rectOptions.add(lastLatLng)
+        }
+        mMap.addPolyline(rectOptions)
+    }
+
+    private fun areLocUpdatesOn(): Boolean {
+        val jobScheduler = applicationContext.getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
+        val allJobs = jobScheduler.allPendingJobs
+        if (allJobs.size != 0) {
+            allJobs.forEach { j ->
+                val id = j.id
+                if (id == LocationJobScheduler.JOB_ID) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    private fun checkPermissions() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)) {
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+                AlertDialog.Builder(this)
+                        .setMessage("We need location permissions to map your recent locations")
+                        .setPositiveButton(android.R.string.ok, DialogInterface.OnClickListener { _, _ ->
+                            ActivityCompat.requestPermissions(this,
+                                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                                    MY_PERMISSIONS_REQUEST_FINE_LOCATION)
+                        }).setNegativeButton(android.R.string.cancel, null)
+
+            } else {
+                // No explanation needed, we can request the permission.
+                ActivityCompat.requestPermissions(this,
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                        MY_PERMISSIONS_REQUEST_FINE_LOCATION)
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+            }
+        } else {
+            if (!areLocUpdatesOn()) {
+                val ljs = LocationJobScheduler()
+                ljs.startUpdates(applicationContext)
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int,
+                                            permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            MY_PERMISSIONS_REQUEST_FINE_LOCATION -> {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+                    if (!areLocUpdatesOn()) {
+                        val ljs = LocationJobScheduler()
+                        ljs.startUpdates(applicationContext)
+                    }
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return
+            }
+        }
     }
 }

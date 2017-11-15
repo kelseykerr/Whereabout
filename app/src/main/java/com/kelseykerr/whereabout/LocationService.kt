@@ -3,6 +3,8 @@ package com.kelseykerr.whereabout
 import android.content.Context
 import android.location.Location
 import android.util.Log
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
@@ -12,9 +14,7 @@ import java.util.*
 /**
  * Created by kelseykerr on 11/14/17.
  */
-class LocationService(context: Context) {
-
-    var context: Context = context
+class LocationService(private var context: Context) {
 
     companion object {
         const val TAG = "LocationService"
@@ -40,15 +40,27 @@ class LocationService(context: Context) {
         }
     }
 
-    fun onLocationChanged(location: Location) {
-        Log.d(TAG, "Updated Location: " + java.lang.Double.toString(location.latitude) + "," +
+    private fun onLocationChanged(location: Location) {
+        Log.d(TAG, "New Location point: " + java.lang.Double.toString(location.latitude) + "," +
                 java.lang.Double.toString(location.longitude))
         val latLng = LatLng(location.latitude, location.longitude)
         val locObject = LocationObject(latLng, Date())
-        //TODO: store ordered list of location objects, check if length > 100 and
-        // remove oldest if so, then write new location object
         val storage = context.getSharedPreferences(Utils.LOCATION_STORAGE_NAME, 0)
-        val locObjects = storage.getStringSet(Utils.LOCATION_STORAGE_KEY, HashSet())
-
+        val locObjects = storage.getString(Utils.LOCATION_STORAGE_KEY, null)
+        val mapper = ObjectMapper()
+        val locObjectList: MutableList<LocationObject>
+        if (locObjects != null) {
+            locObjectList = mapper.readValue<MutableList<LocationObject>>(locObjects, object : TypeReference<MutableList<LocationObject>>() {})
+        } else {
+            locObjectList = mutableListOf()
+        }
+        if (locObjectList != null && locObjectList.size >= 100) {
+            locObjectList.removeAt(0)
+        }
+        locObjectList.add(locObject)
+        val editor = storage.edit()
+        val newLocObjString = mapper.writeValueAsString(locObjectList)
+        editor.putString(Utils.LOCATION_STORAGE_KEY, newLocObjString)
+        editor.apply()
     }
 }

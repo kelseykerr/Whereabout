@@ -7,7 +7,4 @@ import java.util.*
 /**
  * Created by kelseykerr on 11/14/17.
  */
-class LocationObject(latLng: LatLng, date: Date) : Serializable {
-    var latLng: LatLng = latLng
-    var date: Date = date
-}
+class LocationObject(public var latLng: LatLng = LatLng(0.0,0.0), public var date: Date = Date()) : Serializable
