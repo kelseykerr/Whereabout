@@ -4,7 +4,7 @@ import android.content.Context
 import android.location.Location
 import android.util.Log
 import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
@@ -44,10 +44,10 @@ class LocationService(private var context: Context) {
         Log.d(TAG, "New Location point: " + java.lang.Double.toString(location.latitude) + "," +
                 java.lang.Double.toString(location.longitude))
         val latLng = LatLng(location.latitude, location.longitude)
-        val locObject = LocationObject(latLng, Date())
+        val locObject = LocationObject(latLng.latitude, latLng.longitude, Date())
         val storage = context.getSharedPreferences(Utils.LOCATION_STORAGE_NAME, 0)
         val locObjects = storage.getString(Utils.LOCATION_STORAGE_KEY, null)
-        val mapper = ObjectMapper()
+        val mapper = jacksonObjectMapper()
         val locObjectList: MutableList<LocationObject>
         if (locObjects != null) {
             locObjectList = mapper.readValue<MutableList<LocationObject>>(locObjects, object : TypeReference<MutableList<LocationObject>>() {})

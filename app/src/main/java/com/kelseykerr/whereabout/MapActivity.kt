@@ -3,31 +3,31 @@ package com.kelseykerr.whereabout
 import android.Manifest
 import android.app.job.JobScheduler
 import android.content.Context
+import android.content.DialogInterface
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Bundle
-import android.support.design.widget.Snackbar
 import android.support.design.widget.NavigationView
+import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.*
 import kotlinx.android.synthetic.main.activity_map.*
 import kotlinx.android.synthetic.main.app_bar_map.*
-import android.Manifest.permission
-import android.content.DialogInterface
-import android.graphics.Color
-import android.support.v7.app.AlertDialog
-import android.util.Log
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.android.gms.maps.model.*
 
 
 class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
@@ -35,6 +35,7 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
     companion object {
         const val MY_PERMISSIONS_REQUEST_FINE_LOCATION = 11
         const val TAG = "MapActivity"
+        lateinit var savedPlaces: MutableList<SavedPlace>
     }
 
     private lateinit var mMap: GoogleMap
@@ -45,8 +46,27 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
         setSupportActionBar(toolbar)
 
         fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
+            if (savedPlaces.size >= 20) {
+                Snackbar.make(view, "Max places reached.", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show()
+            } else {
+                try {
+                    LocationServices.getFusedLocationProviderClient(this).lastLocation
+                            .addOnSuccessListener { location ->
+                                // GPS location can be null if GPS is switched off
+                                if (location != null) {
+                                    val newPlaceDialog = NewPlaceDialogFragment.newInstance(location.latitude, location.longitude)
+                                    newPlaceDialog.show(fragmentManager, "dialog")
+                                }
+                            }
+                            .addOnFailureListener { e ->
+                                Log.d(LocationService.TAG, "Error trying to get last GPS location")
+                                e.printStackTrace()
+                            }
+                } catch (e: SecurityException) {
+                    Log.d(LocationService.TAG, "Didn't get updated location because we don't have sufficient permissions")
+                }
+            }
         }
 
         val toggle = ActionBarDrawerToggle(
@@ -61,6 +81,7 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
         checkPermissions()
+        getSavedLocations()
     }
 
     override fun onBackPressed() {
@@ -125,17 +146,13 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
      */
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        addPoints()
     }
 
     private fun addPoints() {
         val storage = applicationContext.getSharedPreferences(Utils.LOCATION_STORAGE_NAME, 0)
         val locObjects = storage.getString(Utils.LOCATION_STORAGE_KEY, null)
-        val mapper = ObjectMapper()
+        val mapper = jacksonObjectMapper()
         val locObjectList: MutableList<LocationObject>
         if (locObjects != null) {
             locObjectList = mapper.readValue<MutableList<LocationObject>>(locObjects, object : TypeReference<MutableList<LocationObject>>() {})
@@ -144,16 +161,14 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
         }
         var rectOptions = PolylineOptions()
         rectOptions.color(Color.argb(255, 85, 166, 27));
-        val startLatLng: LatLng? = null
-        val endLatLng: LatLng? = null
         try {
-            mMap.setMyLocationEnabled(true)
+            mMap.isMyLocationEnabled = true
         } catch (e: SecurityException) {
             Log.d(TAG, "Can't get user's current location because permissions aren't granted")
         }
         var lastLatLng: LatLng
         locObjectList.forEach { locObj ->
-            lastLatLng = locObj.latLng
+            lastLatLng = LatLng(locObj.lat, locObj.lng)
             var markerOptions = MarkerOptions()
             markerOptions.position(lastLatLng)
             mMap.moveCamera(CameraUpdateFactory.newLatLng(lastLatLng));
@@ -175,6 +190,19 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
             rectOptions.add(lastLatLng)
         }
         mMap.addPolyline(rectOptions)
+    }
+
+    private fun getSavedLocations() {
+        val storage = applicationContext.getSharedPreferences(Utils.SAVED_PLACES_STORAGE_NAME, 0)
+        val savedPlacesString = storage.getString(Utils.SAVED_PLACES_STORAGE_KEY, null)
+        val mapper = jacksonObjectMapper()
+        val places: MutableList<SavedPlace>
+        if (savedPlacesString != null) {
+            places = mapper.readValue<MutableList<SavedPlace>>(savedPlacesString, object : TypeReference<MutableList<SavedPlace>>() {})
+        } else {
+            places = mutableListOf()
+        }
+        savedPlaces = places
     }
 
     private fun areLocUpdatesOn(): Boolean {
