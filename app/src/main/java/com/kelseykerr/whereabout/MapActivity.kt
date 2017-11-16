@@ -160,7 +160,7 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
             locObjectList = mutableListOf()
         }
         var rectOptions = PolylineOptions()
-        rectOptions.color(Color.argb(255, 85, 166, 27));
+        rectOptions.color(Color.argb(255, 0, 0, 0))
         try {
             mMap.isMyLocationEnabled = true
         } catch (e: SecurityException) {
@@ -171,11 +171,11 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
             lastLatLng = LatLng(locObj.lat, locObj.lng)
             var markerOptions = MarkerOptions()
             markerOptions.position(lastLatLng)
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(lastLatLng));
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(lastLatLng))
             mMap.animateCamera(CameraUpdateFactory.zoomTo(15F))
 
             markerOptions.icon(BitmapDescriptorFactory
-                    .defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                    .defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
             markerOptions.title("" + locObj.date)
             mMap.addMarker(markerOptions)
 

@@ -12,10 +12,13 @@ import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.TextInputLayout
 import android.util.Log
-import android.view.*
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.EditText
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.view.Window
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
+import android.widget.*
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import java.util.*
 
@@ -39,6 +42,9 @@ class NewPlaceDialogFragment : DialogFragment() {
     lateinit private var saveBtn: Button
     lateinit private var cancelBtn: Button
     private lateinit var mContext: Context
+    lateinit private var progressSpinner: ProgressBar
+    lateinit private var progressText: TextView
+    lateinit private var spinnerLayout: RelativeLayout
 
     companion object {
         fun newInstance(lat: Double, lng: Double): NewPlaceDialogFragment {
@@ -49,6 +55,7 @@ class NewPlaceDialogFragment : DialogFragment() {
             f.arguments = args
             return f
         }
+        val TAG = "NewPlaceDialog"
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -94,10 +101,21 @@ class NewPlaceDialogFragment : DialogFragment() {
         addressTextInput = v.findViewById(R.id.address_input_layout)
         addressField = v.findViewById(R.id.place_address)
         addressField.setText(getAddressFromLatLng())
+        addressField.setOnEditorActionListener { v, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_NEXT) {
+                if (!addressField.text.toString().isEmpty()) {
+                    val imm = v.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    imm.hideSoftInputFromWindow(v.windowToken, 0)
+                    getLatLngFromAddress()
+                }
+                false
+            } else {
+                false
+            }
+
+        }
         showOnMapCheckbox = v.findViewById(R.id.show_on_map)
-        showOnMapCheckbox.setOnClickListener({v ->
-            //don't need to do anything
-        })
+        showOnMapCheckbox.setOnClickListener({ /*don't need to do anything*/ })
         latTextInput = v.findViewById(R.id.lat_input_layout)
         latField = v.findViewById(R.id.place_lat)
         latField.keyListener = null
@@ -106,28 +124,93 @@ class NewPlaceDialogFragment : DialogFragment() {
         lngField.keyListener = null
         lngField.setText(lng.toString())
         latField.setText(lat.toString())
+        spinnerLayout = v.findViewById(R.id.address_spinner)
+        progressSpinner = v.findViewById(R.id.progress_bar)
+        progressText = v.findViewById(R.id.progress_bar_text)
+        progressSpinner.visibility = View.GONE
+        progressText.visibility = View.GONE
+        spinnerLayout.visibility = View.GONE
         cancelBtn = v.findViewById(R.id.cancel_btn)
         saveBtn = v.findViewById(R.id.save_btn)
-
         cancelBtn.setOnClickListener({ dismiss() })
         saveBtn.setOnClickListener({
-            val newPlace = SavedPlace()
-            val name = nameField.text.toString()
-            val address = addressField.text.toString()
-            val lat = latField.text.toString().toDouble()
-            val lng = lngField.text.toString().toDouble()
-            val showOnMap = showOnMapCheckbox.isChecked
-            newPlace.name = name
-            newPlace.address = address
-            newPlace.lat = lat
-            newPlace.lng = lng
-            newPlace.showOnMap = showOnMap
-            MapActivity.savedPlaces.add(newPlace)
-            writeSavedPlaces()
-            dismiss()
+            if (validateFields()) {
+                val newPlace = SavedPlace()
+                val name = nameField.text.toString()
+                val address = addressField.text.toString()
+                val lat = latField.text.toString().toDouble()
+                val lng = lngField.text.toString().toDouble()
+                val showOnMap = showOnMapCheckbox.isChecked
+                newPlace.name = name
+                newPlace.address = address
+                newPlace.lat = lat
+                newPlace.lng = lng
+                newPlace.showOnMap = showOnMap
+                MapActivity.savedPlaces.add(newPlace)
+                writeSavedPlaces()
+                dismiss()
+            }
         })
 
         return v
+    }
+
+    private fun validateFields(): Boolean {
+        var formValid = true
+        val name = nameField.text.toString()
+        if (name.isEmpty()) {
+            formValid = false
+            nameTextInput.error = "You must enter a name"
+        } else {
+            nameTextInput.error = null
+        }
+        val address = addressField.text.toString()
+        if (address.isEmpty()) {
+            formValid = false
+            addressTextInput.error = "You must enter an address"
+        } else {
+            addressTextInput.error = null
+        }
+        val lat = latField.text.toString()
+        if (lat.isEmpty()) {
+            formValid = false
+            latTextInput.error = "Address must have a valid latitude"
+        } else {
+            latTextInput.error = null
+        }
+        val lng = lngField.text.toString()
+        if (lng.isEmpty()) {
+            formValid = false
+            lngTextInput.error = "Address must have a valid longitude"
+        }
+        return formValid
+    }
+
+    private fun getLatLngFromAddress(): Boolean {
+        val address = addressField.text.toString()
+        Log.d(TAG, "finding lat, lng from address: " + address)
+        if (address.isEmpty()) {
+            return false
+        }
+        progressSpinner.visibility = View.VISIBLE
+        progressText.visibility = View.VISIBLE
+        spinnerLayout.visibility = View.VISIBLE
+        Log.d(TAG, "displaying spinner")
+        val geocoder = Geocoder(mContext, Locale.getDefault())
+        val addresses = geocoder.getFromLocationName(address, 1)
+        if (addresses.isEmpty()) {
+            return false
+        }
+        val gAddress = addresses.get(0)
+        Log.d(TAG, "found lat, lng [" + gAddress.latitude.toString() + ", "
+                + gAddress.longitude.toString() + "]")
+        latField.setText(gAddress.latitude.toString())
+        lngField.setText(gAddress.longitude.toString())
+        Log.d(TAG, "hiding spinner")
+        progressSpinner.visibility = View.GONE
+        progressText.visibility = View.GONE
+        spinnerLayout.visibility = View.GONE
+        return true
     }
 
     private fun getAddressFromLatLng(): String {

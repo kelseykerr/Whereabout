@@ -14,9 +14,19 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:fitsSystemWindows="true"
-        app:headerLayout="@layout/nav_header_map"
-        app:menu="@menu/activity_map_drawer"/>
+        android:fitsSystemWindows="true"/>
+
+    <ListView
+        android:id="@+id/saved_places_list"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/onButton"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="25dp"
+        android:layout_weight="1"
+        android:divider="#FFFFFF"
+        android:paddingTop="0dp"
+        tools:listitem="@layout/saved_place_row" />
 
     <android.support.design.widget.CoordinatorLayout
         android:layout_width="match_parent"
