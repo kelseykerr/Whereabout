@@ -1,6 +1,7 @@
 package com.kelseykerr.whereabout
 
 import android.Manifest
+import android.app.PendingIntent.getActivity
 import android.app.job.JobScheduler
 import android.content.Context
 import android.content.DialogInterface
@@ -18,6 +19,7 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.ListView
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.google.android.gms.location.LocationServices
@@ -38,6 +40,7 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
         lateinit var savedPlaces: MutableList<SavedPlace>
     }
 
+    private lateinit var payloadList: ListView
     private lateinit var mMap: GoogleMap
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -192,7 +195,7 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
         mMap.addPolyline(rectOptions)
     }
 
-    private fun getSavedLocations() {
+    fun getSavedLocations() {
         val storage = applicationContext.getSharedPreferences(Utils.SAVED_PLACES_STORAGE_NAME, 0)
         val savedPlacesString = storage.getString(Utils.SAVED_PLACES_STORAGE_KEY, null)
         val mapper = jacksonObjectMapper()
@@ -203,6 +206,10 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
             places = mutableListOf()
         }
         savedPlaces = places
+        payloadList = saved_places_list
+        val adapter = SavedPlaceListAdapter(savedPlaces, applicationContext)
+        Log.d("**", "saved places size: " + savedPlaces.size)
+        payloadList.adapter = adapter
     }
 
     private fun areLocUpdatesOn(): Boolean {

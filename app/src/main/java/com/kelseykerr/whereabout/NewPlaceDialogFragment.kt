@@ -148,6 +148,7 @@ class NewPlaceDialogFragment : DialogFragment() {
                 newPlace.showOnMap = showOnMap
                 MapActivity.savedPlaces.add(newPlace)
                 writeSavedPlaces()
+                (activity as MapActivity).getSavedLocations()
                 dismiss()
             }
         })
@@ -233,7 +234,8 @@ class NewPlaceDialogFragment : DialogFragment() {
         val editor = storage.edit()
         val mapper = jacksonObjectMapper()
         val savedPlacesObjString = mapper.writeValueAsString(MapActivity.savedPlaces)
-        editor.putString(Utils.LOCATION_STORAGE_KEY, savedPlacesObjString)
+        Log.d(TAG, "saving places: " + savedPlacesObjString)
+        editor.putString(Utils.SAVED_PLACES_STORAGE_KEY, savedPlacesObjString)
         editor.apply()
     }
 
