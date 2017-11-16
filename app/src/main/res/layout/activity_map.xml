@@ -24,7 +24,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="25dp"
-                android:textSize="16dp"
+                android:textSize="20dp"
+                android:textStyle="bold"
                 android:layout_centerHorizontal="true"
                 android:text="Saved Places"/>
 
@@ -32,7 +33,7 @@
                 android:id="@+id/saved_places_list"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="55dp"
+                android:layout_marginTop="65dp"
                 android:paddingTop="0dp"
                 tools:listitem="@layout/saved_place_row"/>
         </RelativeLayout>
@@ -49,7 +50,19 @@
                   android:name="com.google.android.gms.maps.SupportMapFragment"
                   android:layout_width="match_parent"
                   android:layout_height="match_parent"
-                  tools:context="com.kelseykerr.whereabout.MapsActivity"/>
+                  tools:context="com.kelseykerr.whereabout.MapsActivity">
+
+            <ImageView
+                android:id="@+id/menu_icon"
+                android:layout_width="35dp"
+                android:background="@color/transparentGrey"
+                android:layout_margin="10dp"
+                android:layout_gravity="top|start"
+                android:layout_height="35dp"
+                android:padding="5dp"
+                android:src="@drawable/ic_menu_black_24dp" />
+
+        </fragment>
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/fab"

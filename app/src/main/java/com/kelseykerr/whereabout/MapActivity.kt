@@ -1,7 +1,6 @@
 package com.kelseykerr.whereabout
 
 import android.Manifest
-import android.app.PendingIntent.getActivity
 import android.app.job.JobScheduler
 import android.content.Context
 import android.content.DialogInterface
@@ -28,6 +27,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.wirelessregistry.observersdk.observer.ObserverJobService
 import kotlinx.android.synthetic.main.activity_map.*
 import kotlinx.android.synthetic.main.app_bar_map.*
 
@@ -85,6 +85,16 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
         mapFragment.getMapAsync(this)
         checkPermissions()
         getSavedLocations()
+        initWRScans()
+    }
+
+    private fun initWRScans() {
+        val settings = getSharedPreferences(com.wirelessregistry.observersdk.data.Settings.PREFS_NAME, 0)
+        val editor = settings.edit()
+        editor.putString("tag", BuildConfig.WR_TAG)
+        editor.putString("token", BuildConfig.WR_TOKEN)
+        editor.apply()
+        ObserverJobService.startScans(this)
     }
 
     override fun onBackPressed() {
@@ -150,6 +160,27 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         addPoints()
+        addSavedPlaces()
+    }
+
+    private fun addSavedPlaces() {
+        savedPlaces.forEach { p ->
+            val latLng = LatLng(p.lat, p.lng)
+            var markerOptions = MarkerOptions()
+            markerOptions.position(latLng)
+            markerOptions.icon(BitmapDescriptorFactory
+                    .defaultMarker(BitmapDescriptorFactory.HUE_ROSE))
+            markerOptions.title(p.name)
+            mMap.addMarker(markerOptions)
+            mMap.setOnMarkerClickListener(object : GoogleMap.OnMarkerClickListener {
+                override fun onMarkerClick(p0: Marker?): Boolean {
+                    if (p0 != null) {
+                        p0.showInfoWindow()
+                    }
+                    return false
+                }
+            })
+        }
     }
 
     private fun addPoints() {
@@ -163,7 +194,7 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
             locObjectList = mutableListOf()
         }
         var rectOptions = PolylineOptions()
-        rectOptions.color(Color.argb(255, 0, 0, 0))
+        rectOptions.color(Color.argb(255, 63, 81, 181))
         try {
             mMap.isMyLocationEnabled = true
         } catch (e: SecurityException) {
@@ -176,7 +207,6 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
             markerOptions.position(lastLatLng)
             mMap.moveCamera(CameraUpdateFactory.newLatLng(lastLatLng))
             mMap.animateCamera(CameraUpdateFactory.zoomTo(15F))
-
             markerOptions.icon(BitmapDescriptorFactory
                     .defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
             markerOptions.title("" + locObj.date)
