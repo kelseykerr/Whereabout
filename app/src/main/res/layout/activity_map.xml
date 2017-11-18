@@ -35,6 +35,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="65dp"
                 android:paddingTop="0dp"
+                android:clickable="true"
+                android:focusable="true"
                 tools:listitem="@layout/saved_place_row"/>
         </RelativeLayout>
     </android.support.design.widget.NavigationView>

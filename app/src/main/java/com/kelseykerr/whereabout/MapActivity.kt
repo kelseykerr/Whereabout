@@ -16,8 +16,11 @@ import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.AdapterView
 import android.widget.ListView
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -32,7 +35,7 @@ import kotlinx.android.synthetic.main.activity_map.*
 import kotlinx.android.synthetic.main.app_bar_map.*
 
 
-class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
+class MapActivity : AppCompatActivity(), OnMapReadyCallback, AdapterView.OnItemClickListener {
 
     companion object {
         const val MY_PERMISSIONS_REQUEST_FINE_LOCATION = 11
@@ -40,7 +43,7 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
         lateinit var savedPlaces: MutableList<SavedPlace>
     }
 
-    private lateinit var payloadList: ListView
+    private lateinit var savedPlacesList: ListView
     private lateinit var mMap: GoogleMap
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,13 +74,14 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
                 }
             }
         }
+        menu_icon.setOnClickListener{_ ->
+            drawer_layout.openDrawer(Gravity.LEFT)
+        }
 
         val toggle = ActionBarDrawerToggle(
                 this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
-
-        nav_view.setNavigationItemSelectedListener(this)
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
@@ -119,33 +123,6 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
             R.id.action_settings -> return true
             else -> return super.onOptionsItemSelected(item)
         }
-    }
-
-    override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        // Handle navigation view item clicks here.
-        when (item.itemId) {
-            R.id.nav_camera -> {
-                // Handle the camera action
-            }
-            R.id.nav_gallery -> {
-
-            }
-            R.id.nav_slideshow -> {
-
-            }
-            R.id.nav_manage -> {
-
-            }
-            R.id.nav_share -> {
-
-            }
-            R.id.nav_send -> {
-
-            }
-        }
-
-        drawer_layout.closeDrawer(GravityCompat.START)
-        return true
     }
 
     /**
@@ -236,10 +213,27 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
             places = mutableListOf()
         }
         savedPlaces = places
-        payloadList = saved_places_list
+        savedPlacesList = saved_places_list
         val adapter = SavedPlaceListAdapter(savedPlaces, applicationContext)
         Log.d("**", "saved places size: " + savedPlaces.size)
-        payloadList.adapter = adapter
+        savedPlacesList.adapter = adapter
+        savedPlacesList.isClickable = true
+        savedPlacesList.onItemClickListener = this
+
+        savedPlacesList.setOnItemClickListener{_, _, pos, _ ->
+            Log.d(TAG, "**clicked**")
+            val savedPlace = savedPlaces[pos]
+            val placeDetailDialog = PlaceDetailDialogFragment.newInstance(pos)
+            placeDetailDialog.show(fragmentManager, "dialog")
+
+        }
+    }
+
+    override fun onItemClick(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+        Log.d(TAG, "**clicked**")
+        val savedPlace = savedPlaces[position]
+        val placeDetailDialog = PlaceDetailDialogFragment.newInstance(position)
+        placeDetailDialog.show(fragmentManager, "dialog")
     }
 
     private fun areLocUpdatesOn(): Boolean {
@@ -261,7 +255,6 @@ class MapActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelected
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
 
-            // Should we show an explanation?
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                     Manifest.permission.ACCESS_FINE_LOCATION)) {
                 // Show an explanation to the user *asynchronously* -- don't block
