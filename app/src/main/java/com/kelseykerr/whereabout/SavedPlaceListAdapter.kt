@@ -40,7 +40,7 @@ class SavedPlaceListAdapter(places: List<SavedPlace>, context: Context): BaseAda
         if (cView == null) {
             cView = LayoutInflater.from(mContext).inflate(R.layout.saved_place_row, null)
         }
-        val place = places.get(position)
+        val place = places[position]
         val nameText = cView?.findViewById<TextView>(R.id.place_name)
         val addressText = cView?.findViewById<TextView>(R.id.place_address)
         nameText?.text = place.name

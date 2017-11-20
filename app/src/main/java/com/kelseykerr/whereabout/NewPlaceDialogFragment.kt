@@ -149,6 +149,7 @@ class NewPlaceDialogFragment : DialogFragment() {
                 MapActivity.savedPlaces.add(newPlace)
                 writeSavedPlaces()
                 (activity as MapActivity).getSavedLocations()
+
                 dismiss()
             }
         })
@@ -202,7 +203,7 @@ class NewPlaceDialogFragment : DialogFragment() {
         if (addresses.isEmpty()) {
             return false
         }
-        val gAddress = addresses.get(0)
+        val gAddress = addresses[0]
         Log.d(TAG, "found lat, lng [" + gAddress.latitude.toString() + ", "
                 + gAddress.longitude.toString() + "]")
         latField.setText(gAddress.latitude.toString())
@@ -219,14 +220,13 @@ class NewPlaceDialogFragment : DialogFragment() {
         val geocoder = Geocoder(mContext, Locale.getDefault())
 
         addresses = geocoder.getFromLocation(lat, lng, 1)
-        Log.d("*address*", addresses[0].toString())
-        val address = addresses[0].getAddressLine(0)
-        val city = addresses[0].getLocality()
+        Log.d(TAG, "Address from current lat, lng:" + addresses[0].toString())
+        return addresses[0].getAddressLine(0)
+        /*val city = addresses[0].getLocality()
         val state = addresses[0].getAdminArea()
         val country = addresses[0].getCountryName()
         val postalCode = addresses[0].getPostalCode()
-        val knownName = addresses[0].getFeatureName()
-        return address
+        val knownName = addresses[0].getFeatureName()*/
     }
 
     private fun writeSavedPlaces() {

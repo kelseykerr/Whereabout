@@ -7,7 +7,6 @@ import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
-import android.support.design.widget.NavigationView
 import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
@@ -75,13 +74,12 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, AdapterView.OnItemC
             }
         }
         menu_icon.setOnClickListener{_ ->
-            drawer_layout.openDrawer(Gravity.LEFT)
+            drawer_layout.openDrawer(Gravity.START)
         }
 
-        val toggle = ActionBarDrawerToggle(
-                this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
-        drawer_layout.addDrawerListener(toggle)
-        toggle.syncState()
+        //val toggle = ActionBarDrawerToggle( this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+        //drawer_layout.addDrawerListener(toggle)
+        //toggle.syncState()
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
@@ -140,7 +138,11 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, AdapterView.OnItemC
         addSavedPlaces()
     }
 
-    private fun addSavedPlaces() {
+    fun clearMarkers() {
+        mMap.clear()
+    }
+
+    fun addSavedPlaces() {
         savedPlaces.forEach { p ->
             val latLng = LatLng(p.lat, p.lng)
             var markerOptions = MarkerOptions()
@@ -160,7 +162,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, AdapterView.OnItemC
         }
     }
 
-    private fun addPoints() {
+    fun addPoints() {
         val storage = applicationContext.getSharedPreferences(Utils.LOCATION_STORAGE_NAME, 0)
         val locObjects = storage.getString(Utils.LOCATION_STORAGE_KEY, null)
         val mapper = jacksonObjectMapper()
@@ -215,25 +217,21 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, AdapterView.OnItemC
         savedPlaces = places
         savedPlacesList = saved_places_list
         val adapter = SavedPlaceListAdapter(savedPlaces, applicationContext)
-        Log.d("**", "saved places size: " + savedPlaces.size)
         savedPlacesList.adapter = adapter
         savedPlacesList.isClickable = true
         savedPlacesList.onItemClickListener = this
 
         savedPlacesList.setOnItemClickListener{_, _, pos, _ ->
-            Log.d(TAG, "**clicked**")
-            val savedPlace = savedPlaces[pos]
             val placeDetailDialog = PlaceDetailDialogFragment.newInstance(pos)
             placeDetailDialog.show(fragmentManager, "dialog")
-
+            drawer_layout.closeDrawer(Gravity.START)
         }
     }
 
     override fun onItemClick(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-        Log.d(TAG, "**clicked**")
-        val savedPlace = savedPlaces[position]
         val placeDetailDialog = PlaceDetailDialogFragment.newInstance(position)
         placeDetailDialog.show(fragmentManager, "dialog")
+        drawer_layout.closeDrawer(Gravity.START)
     }
 
     private fun areLocUpdatesOn(): Boolean {

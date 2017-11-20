@@ -76,7 +76,7 @@ class PlaceDetailDialogFragment : DialogFragment() {
             display.getSize(size)
             val width = size.x
             val height = size.y
-            dialog.window.setLayout((width * 0.90).toInt(), (height * 0.60).toInt())
+            dialog.window.setLayout((width * 0.90).toInt(), (height * 0.50).toInt())
             dialog.window!!.setBackgroundDrawable(ColorDrawable(Color.WHITE))
         }
     }
@@ -98,6 +98,10 @@ class PlaceDetailDialogFragment : DialogFragment() {
         deleteBtn.setOnClickListener({
             MapActivity.savedPlaces.removeAt(position)
             writeSavedPlaces()
+            (activity as MapActivity).getSavedLocations()
+            (activity as MapActivity).clearMarkers()
+            (activity as MapActivity).addPoints()
+            (activity as MapActivity).addSavedPlaces()
             dismiss()
         })
         okBtn.setOnClickListener({
