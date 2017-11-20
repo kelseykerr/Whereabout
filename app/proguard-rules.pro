@@ -20,7 +20,23 @@
 # hide the original source file name.
 -renamesourcefileattribute SourceFile
 
--keepclassmembers class com.kelseykerr.models.** { *; }
+-keepclassmembers class com.kelseykerr.whereabout.models.** { *; }
+
+-keep class com.kelseykerr.whereabout.models.** { *; }
+
+-keep class kotlin.Metadata { *; }
+
+-keepclassmembers public class com.kelseykerr.** {
+    public synthetic <methods>;
+}
+
+-keep class com.fasterxml.jackson.databind.ObjectMapper {
+    public <methods>;
+    protected <methods>;
+}
+-keep class com.fasterxml.jackson.databind.ObjectWriter {
+    public ** writeValueAsString(**);
+}
 
 -keepclassmembers class com.wirelessregistry.observersdk.events.EventService
 

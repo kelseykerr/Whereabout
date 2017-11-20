@@ -19,6 +19,8 @@ import android.view.Window
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.kelseykerr.whereabout.models.SavedPlace
 import java.util.*
@@ -146,6 +148,8 @@ class NewPlaceDialogFragment : DialogFragment() {
                 newPlace.address = address
                 newPlace.lat = lat
                 newPlace.lng = lng
+                Log.d(TAG, "new place lat: " + newPlace.lat)
+                Log.d(TAG, "new place lng: " + newPlace.lng)
                 newPlace.showOnMap = showOnMap
                 MapActivity.savedPlaces.add(newPlace)
                 writeSavedPlaces()

@@ -299,6 +299,23 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, AdapterView.OnItemC
                         val ljs = LocationJobScheduler()
                         ljs.startUpdates(applicationContext)
                     }
+                    try {
+                        LocationServices.getFusedLocationProviderClient(this).lastLocation
+                                .addOnSuccessListener { location ->
+                                    // GPS location can be null if GPS is switched off
+                                    if (location != null) {
+                                        val latLng = LatLng(location.latitude, location.longitude)
+                                        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng))
+                                        mMap.animateCamera(CameraUpdateFactory.zoomTo(15F))
+                                    }
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.d(LocationService.TAG, "Error trying to get last GPS location")
+                                    e.printStackTrace()
+                                }
+                    } catch (e: SecurityException) {
+                        Log.d(LocationService.TAG, "Didn't get updated location because we don't have sufficient permissions")
+                    }
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
