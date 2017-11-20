@@ -17,6 +17,7 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.TextView
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.kelseykerr.whereabout.models.SavedPlace
 
 /**
  * Created by kelseykerr on 11/18/17.
@@ -108,8 +109,12 @@ class PlaceDetailDialogFragment : DialogFragment() {
             val showOnMap = showOnMapCheckbox.isChecked
             if (showOnMap != savedPlace.showOnMap) {
                 savedPlace.showOnMap = showOnMap
-                MapActivity.savedPlaces.add(position, savedPlace)
+                MapActivity.savedPlaces[position] = savedPlace
                 writeSavedPlaces()
+                (activity as MapActivity).getSavedLocations()
+                (activity as MapActivity).clearMarkers()
+                (activity as MapActivity).addPoints()
+                (activity as MapActivity).addSavedPlaces()
             }
             dismiss()
         })

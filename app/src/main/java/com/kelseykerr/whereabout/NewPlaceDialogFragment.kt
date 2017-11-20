@@ -20,6 +20,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.kelseykerr.whereabout.models.SavedPlace
 import java.util.*
 
 
@@ -149,7 +150,11 @@ class NewPlaceDialogFragment : DialogFragment() {
                 MapActivity.savedPlaces.add(newPlace)
                 writeSavedPlaces()
                 (activity as MapActivity).getSavedLocations()
-
+                if (newPlace.showOnMap) {
+                    (activity as MapActivity).clearMarkers()
+                    (activity as MapActivity).addPoints()
+                    (activity as MapActivity).addSavedPlaces()
+                }
                 dismiss()
             }
         })

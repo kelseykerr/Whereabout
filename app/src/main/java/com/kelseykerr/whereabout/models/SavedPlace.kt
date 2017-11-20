@@ -1,4 +1,4 @@
-package com.kelseykerr.whereabout
+package com.kelseykerr.whereabout.models
 
 import java.io.Serializable
 

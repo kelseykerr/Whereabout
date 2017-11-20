@@ -11,7 +11,6 @@ import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.GravityCompat
-import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
@@ -29,6 +28,8 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.kelseykerr.whereabout.models.LocationObject
+import com.kelseykerr.whereabout.models.SavedPlace
 import com.wirelessregistry.observersdk.observer.ObserverJobService
 import kotlinx.android.synthetic.main.activity_map.*
 import kotlinx.android.synthetic.main.app_bar_map.*
@@ -144,21 +145,23 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, AdapterView.OnItemC
 
     fun addSavedPlaces() {
         savedPlaces.forEach { p ->
-            val latLng = LatLng(p.lat, p.lng)
-            var markerOptions = MarkerOptions()
-            markerOptions.position(latLng)
-            markerOptions.icon(BitmapDescriptorFactory
-                    .defaultMarker(BitmapDescriptorFactory.HUE_ROSE))
-            markerOptions.title(p.name)
-            mMap.addMarker(markerOptions)
-            mMap.setOnMarkerClickListener(object : GoogleMap.OnMarkerClickListener {
-                override fun onMarkerClick(p0: Marker?): Boolean {
-                    if (p0 != null) {
-                        p0.showInfoWindow()
+            if (p.showOnMap) {
+                val latLng = LatLng(p.lat, p.lng)
+                var markerOptions = MarkerOptions()
+                markerOptions.position(latLng)
+                markerOptions.icon(BitmapDescriptorFactory
+                        .defaultMarker(BitmapDescriptorFactory.HUE_ROSE))
+                markerOptions.title(p.name)
+                mMap.addMarker(markerOptions)
+                mMap.setOnMarkerClickListener(object : GoogleMap.OnMarkerClickListener {
+                    override fun onMarkerClick(p0: Marker?): Boolean {
+                        if (p0 != null) {
+                            p0.showInfoWindow()
+                        }
+                        return false
                     }
-                    return false
-                }
-            })
+                })
+            }
         }
     }
 

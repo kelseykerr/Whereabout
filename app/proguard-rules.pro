@@ -14,8 +14,30 @@
 
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+-keepattributes SourceFile,LineNumberTable
 
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
-#-renamesourcefileattribute SourceFile
+-renamesourcefileattribute SourceFile
+
+-keepclassmembers class com.kelseykerr.models.** { *; }
+
+-keepclassmembers class com.wirelessregistry.observersdk.events.EventService
+
+-keep class com.fasterxml.jackson.annotation.** { *; }
+
+-dontwarn javax.annotation.Nullable
+
+-dontwarn javax.annotation.Nonnull
+
+-keepclassmembers class com.wirelessregistry.pcap.** { *; }
+
+-keep class com.wirelessregistry.pcap.** { *; }
+
+-dontwarn com.fasterxml.jackson.databind.**
+
+-dontwarn com.wirelessregistry.pcap.**
+
+-dontwarn kotlin.reflect.jvm.internal.**
+
+
