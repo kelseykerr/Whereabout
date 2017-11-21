@@ -50,11 +50,7 @@ class LocationService(private var context: Context) {
         val locObjects = storage.getString(Utils.LOCATION_STORAGE_KEY, null)
         val mapper = jacksonObjectMapper()
         val locObjectList: MutableList<LocationObject>
-        if (locObjects != null) {
-            locObjectList = mapper.readValue<MutableList<LocationObject>>(locObjects, object : TypeReference<MutableList<LocationObject>>() {})
-        } else {
-            locObjectList = mutableListOf()
-        }
+        locObjectList = if (locObjects != null) mapper.readValue<MutableList<LocationObject>>(locObjects, object : TypeReference<MutableList<LocationObject>>() {}) else mutableListOf()
         if (locObjectList != null && locObjectList.size >= 100) {
             locObjectList.removeAt(0)
         }

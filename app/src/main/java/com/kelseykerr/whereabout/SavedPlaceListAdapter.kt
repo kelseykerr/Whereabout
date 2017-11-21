@@ -12,33 +12,24 @@ import com.kelseykerr.whereabout.models.SavedPlace
 /**
  * Created by kelseykerr on 11/16/17.
  */
-class SavedPlaceListAdapter(places: List<SavedPlace>, context: Context): BaseAdapter() {
-    private var places: List<SavedPlace> = places
-    private lateinit var name: String
-    private lateinit var address: String
+class SavedPlaceListAdapter(private var places: List<SavedPlace>, context: Context): BaseAdapter() {
     private var mContext: Context = context
 
     companion object {
         const val TAG = "SavedPlaceAdapter"
     }
 
-    override fun getItem(position: Int): SavedPlace {
-        return places.get(position)
-    }
+    override fun getItem(position: Int) = places[position]
 
-    override fun getItemId(position: Int): Long {
-        return 1
-    }
+    override fun getItemId(position: Int) = 1L
 
-    override fun getCount(): Int {
-        return places.size
-    }
+    override fun getCount() = places.size
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         Log.d(TAG, "getView")
         var cView = convertView
         if (cView == null) {
-            cView = LayoutInflater.from(mContext).inflate(R.layout.saved_place_row, null)
+            cView = LayoutInflater.from(mContext).inflate(R.layout.saved_place_row, parent)
         }
         val place = places[position]
         val nameText = cView?.findViewById<TextView>(R.id.place_name)

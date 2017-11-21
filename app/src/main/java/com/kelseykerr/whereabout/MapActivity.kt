@@ -3,7 +3,6 @@ package com.kelseykerr.whereabout
 import android.Manifest
 import android.app.job.JobScheduler
 import android.content.Context
-import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
@@ -78,10 +77,6 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, AdapterView.OnItemC
             drawer_layout.openDrawer(Gravity.START)
         }
 
-        //val toggle = ActionBarDrawerToggle( this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
-        //drawer_layout.addDrawerListener(toggle)
-        //toggle.syncState()
-
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
@@ -147,7 +142,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, AdapterView.OnItemC
         savedPlaces.forEach { p ->
             if (p.showOnMap) {
                 val latLng = LatLng(p.lat, p.lng)
-                var markerOptions = MarkerOptions()
+                val markerOptions = MarkerOptions()
                 markerOptions.position(latLng)
                 markerOptions.icon(BitmapDescriptorFactory
                         .defaultMarker(BitmapDescriptorFactory.HUE_ROSE))
@@ -155,9 +150,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, AdapterView.OnItemC
                 mMap.addMarker(markerOptions)
                 mMap.setOnMarkerClickListener(object : GoogleMap.OnMarkerClickListener {
                     override fun onMarkerClick(p0: Marker?): Boolean {
-                        if (p0 != null) {
-                            p0.showInfoWindow()
-                        }
+                        p0?.showInfoWindow()
                         return false
                     }
                 })
@@ -170,12 +163,8 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, AdapterView.OnItemC
         val locObjects = storage.getString(Utils.LOCATION_STORAGE_KEY, null)
         val mapper = jacksonObjectMapper()
         val locObjectList: MutableList<LocationObject>
-        if (locObjects != null) {
-            locObjectList = mapper.readValue<MutableList<LocationObject>>(locObjects, object : TypeReference<MutableList<LocationObject>>() {})
-        } else {
-            locObjectList = mutableListOf()
-        }
-        var rectOptions = PolylineOptions()
+        locObjectList = if (locObjects != null) mapper.readValue<MutableList<LocationObject>>(locObjects, object : TypeReference<MutableList<LocationObject>>() {}) else mutableListOf()
+        val rectOptions = PolylineOptions()
         rectOptions.color(Color.argb(255, 63, 81, 181))
         try {
             mMap.isMyLocationEnabled = true
@@ -185,7 +174,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, AdapterView.OnItemC
         var lastLatLng: LatLng
         locObjectList.forEach { locObj ->
             lastLatLng = LatLng(locObj.lat, locObj.lng)
-            var markerOptions = MarkerOptions()
+            val markerOptions = MarkerOptions()
             markerOptions.position(lastLatLng)
             mMap.moveCamera(CameraUpdateFactory.newLatLng(lastLatLng))
             mMap.animateCamera(CameraUpdateFactory.zoomTo(15F))
@@ -196,9 +185,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, AdapterView.OnItemC
 
             mMap.setOnMarkerClickListener(object : GoogleMap.OnMarkerClickListener {
                 override fun onMarkerClick(p0: Marker?): Boolean {
-                    if (p0 != null) {
-                        p0.showInfoWindow()
-                    }
+                    p0?.showInfoWindow()
                     return false
                 }
             })
@@ -212,11 +199,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, AdapterView.OnItemC
         val savedPlacesString = storage.getString(Utils.SAVED_PLACES_STORAGE_KEY, null)
         val mapper = jacksonObjectMapper()
         val places: MutableList<SavedPlace>
-        if (savedPlacesString != null) {
-            places = mapper.readValue<MutableList<SavedPlace>>(savedPlacesString, object : TypeReference<MutableList<SavedPlace>>() {})
-        } else {
-            places = mutableListOf()
-        }
+        places = if (savedPlacesString != null) mapper.readValue<MutableList<SavedPlace>>(savedPlacesString, object : TypeReference<MutableList<SavedPlace>>() {}) else mutableListOf()
         savedPlaces = places
         savedPlacesList = saved_places_list
         val adapter = SavedPlaceListAdapter(savedPlaces, applicationContext)
@@ -263,7 +246,7 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback, AdapterView.OnItemC
                 // sees the explanation, try again to request the permission.
                 AlertDialog.Builder(this)
                         .setMessage("We need location permissions to map your recent locations")
-                        .setPositiveButton(android.R.string.ok, DialogInterface.OnClickListener { _, _ ->
+                        .setPositiveButton(android.R.string.ok, { _, _ ->
                             ActivityCompat.requestPermissions(this,
                                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                                     MY_PERMISSIONS_REQUEST_FINE_LOCATION)

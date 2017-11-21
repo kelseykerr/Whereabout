@@ -33,7 +33,7 @@ class PlaceDetailDialogFragment : DialogFragment() {
     lateinit private var savedPlace: SavedPlace
     private lateinit var mContext: Context
 
-    var position: Int = 0
+    private var position: Int = 0
 
 
     companion object {

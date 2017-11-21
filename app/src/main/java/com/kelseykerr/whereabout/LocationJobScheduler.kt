@@ -37,9 +37,7 @@ class LocationJobScheduler : JobService() {
         return true
     }
 
-    override fun onStopJob(params: JobParameters): Boolean {
-        return true
-    }
+    override fun onStopJob(params: JobParameters) = true
 
     private fun scheduleJob() {
         val sharedPrefs = applicationContext.getSharedPreferences(Utils.SETTINGS_NAME, 0)

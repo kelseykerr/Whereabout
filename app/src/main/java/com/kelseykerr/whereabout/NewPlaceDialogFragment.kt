@@ -19,8 +19,6 @@ import android.view.Window
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.kelseykerr.whereabout.models.SavedPlace
 import java.util.*
@@ -31,8 +29,8 @@ import java.util.*
  */
 class NewPlaceDialogFragment : DialogFragment() {
 
-    var lat: Double = 0.0
-    var lng: Double = 0.0
+    private var lat: Double = 0.0
+    private var lng: Double = 0.0
     lateinit private var nameTextInput: TextInputLayout
     lateinit private var nameField: EditText
     lateinit private var addressTextInput: TextInputLayout
@@ -104,7 +102,7 @@ class NewPlaceDialogFragment : DialogFragment() {
         addressTextInput = v.findViewById(R.id.address_input_layout)
         addressField = v.findViewById(R.id.place_address)
         addressField.setText(getAddressFromLatLng())
-        addressField.setOnEditorActionListener { v, actionId, _ ->
+        addressField.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_NEXT) {
                 if (!addressField.text.toString().isEmpty()) {
                     val imm = v.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
