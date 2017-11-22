@@ -29,7 +29,7 @@ class SavedPlaceListAdapter(private var places: List<SavedPlace>, context: Conte
         Log.d(TAG, "getView")
         var cView = convertView
         if (cView == null) {
-            cView = LayoutInflater.from(mContext).inflate(R.layout.saved_place_row, parent)
+            cView = LayoutInflater.from(mContext).inflate(R.layout.saved_place_row, parent, false)
         }
         val place = places[position]
         val nameText = cView?.findViewById<TextView>(R.id.place_name)

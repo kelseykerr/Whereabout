@@ -15,8 +15,8 @@ android {
         applicationId "com.kelseykerr.whereabout"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 2
-        versionName "1.0.1"
+        versionCode 4
+        versionName "1.0.3"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "WR_TOKEN", keystoreProperties['wrToken']
         buildConfigField "String", "WR_TAG", keystoreProperties['wrTag']

@@ -27,11 +27,13 @@
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:textSize="16sp"
+            android:textColor="@color/black"
             android:textStyle="bold"
             android:layout_weight="1"/>
         <TextView
             android:id="@+id/place_address"
             android:layout_width="wrap_content"
+            android:textColor="@color/black"
             android:layout_height="0dp"
             android:layout_weight="1"
             android:textSize="12sp" />
