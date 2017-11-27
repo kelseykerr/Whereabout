@@ -225,10 +225,14 @@ class NewPlaceDialogFragment : DialogFragment() {
     private fun getAddressFromLatLng(): String {
         val addresses: List<Address>
         val geocoder = Geocoder(mContext, Locale.getDefault())
-
-        addresses = geocoder.getFromLocation(lat, lng, 1)
-        Log.d(TAG, "Address from current lat, lng:" + addresses[0].toString())
-        return addresses[0].getAddressLine(0)
+        try {
+            addresses = geocoder.getFromLocation(lat, lng, 1)
+            Log.d(TAG, "Address from current lat, lng:" + addresses[0].toString())
+            return addresses[0].getAddressLine(0)
+        } catch (e: Exception) {
+            Log.d(TAG, "unable to get address from lat, lng: " + e.message)
+            return ""
+        }
         /*val city = addresses[0].getLocality()
         val state = addresses[0].getAdminArea()
         val country = addresses[0].getCountryName()
